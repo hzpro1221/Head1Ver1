@@ -93,6 +93,6 @@ if __name__ == '__main__':
 
 				loss_value.backward()
 
-				print(f"Epoch: {epoch}, Document: {i}, Batch: {j}")
+				print(f"Epoch: {epoch}, Document: {i}, Batch: {j}, loss: {loss_value}")
 
 				optim.step()   
