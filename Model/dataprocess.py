@@ -49,8 +49,8 @@ def CustomCollateFunction(batch):
 	labels_list = []
 	for sample in batch:
 		tokens_list.append(sample["index"])
-		labels_list.append(sample["label"])
+		labels_list.append(torch.tensor(sample["label"]))
 
-	tokens_stack = torch.stack(tokens_list)
 	labels_stack = torch.stack(labels_list)
-	return {"tokens_stack": tokens_stack, "labels_stack": labels_stack}
+
+	return {"list_index": tokens_list, "labels_stack": labels_stack}

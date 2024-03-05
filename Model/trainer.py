@@ -34,7 +34,7 @@ if __name__ == '__main__':
 	loss = nn.MSELoss()
 	optim = AdamW(model.parameters(), lr=lr)
 
-	processed_data = Porcess_Data(train_data, tokenizer)
+	processed_data = Process_Data(train_data, tokenizer)
 
 	for epoch in range(num_eps):
 		for i, sample in enumerate(processed_data):
@@ -73,10 +73,21 @@ if __name__ == '__main__':
 			tokens_index = postive_token + negative_token
 			labels = positive_token_label + negative_token_label
 
-			print(f"labels len: {len(labels[0])}")
-
 			dataset = CustomDataset(tokens_index=tokens_index, labels=labels)
-			dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, collate_fn=CustomCollateFunction())
+			dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, collate_fn=CustomCollateFunction)
 
 			for i, batch in enumerate(dataloader):
 				optim.zero_grad()
+
+				tokens_list = []
+				for index in batch["list_index"]:
+					tokens_list.append(last_hidden_states[0][index])
+
+				tokens_stack = torch.stack(token_list) # Shape: (batch_size, 768)
+				labels_stack = batch["labels_stack"] # Shape: (batch_size, 512)
+
+				print(f"tokens_stack shape: {tokens_stack.shape}")
+				print(f"labels_stack shape: {labels_stack.shape}")
+
+				logits = model.forward(last_hidden_states, tokens_stack)
+				print("logits shape: {logits.shape}")
