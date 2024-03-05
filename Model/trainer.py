@@ -89,10 +89,10 @@ if __name__ == '__main__':
 				logits = model.forward(last_hidden_states, tokens_stack)
 				# print("logits shape: {logits.shape}")
 
-				loss_value = loss(logits, labels_stack)
+				loss_value = loss(logits.float(), labels_stack.float())
 
 				loss_value.backward()
 
 				print(f"Epoch: {epoch}, Document: {i}, Batch: {j}")
-				
+
 				optim.step()   
