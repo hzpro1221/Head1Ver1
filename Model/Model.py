@@ -41,7 +41,7 @@ class Language_model(nn.Module):
 
 	def forward(self, inputs):
 		outputs = self.model(**inputs)
-		last_hidden_states = outpus.last_hidden_state
+		last_hidden_states = outputs.last_hidden_state
 		return last_hidden_states
 
 class Condition_Feed_forward_block(nn.Module):
@@ -54,6 +54,7 @@ class Condition_Feed_forward_block(nn.Module):
 	def forward(self, vectors):
 		x = self.activation(self.layer1(vectors))
 		x = self.layer2(x)
+		x = x.view(1, 512, 768)
 		return x
 
 class Context_Feed_forward_block(nn.Module):
@@ -64,28 +65,30 @@ class Context_Feed_forward_block(nn.Module):
 		self.layer2 = nn.Linear(20, 512*768)
 
 	def forward(self, last_hidden_states):
-		x = last_hidden_states.view(1, 512*768)
+		x = last_hidden_states.view(512*768)
 		x = self.activation(self.layer1(x))
 		x = self.layer2(x)
+		x = x.view(1, 512, 768)
 		return x
 
 class ModelBody(nn.Module):
 	def __init__(self):
 		super().__init__()
+		self.Context_Feed_forward_block = Context_Feed_forward_block()
 		self.Condition_Feed_forward_block = Condition_Feed_forward_block()
 		self.Convolution_layer = Convolution_layer()
 		self.AvgPool_layers = nn.ModuleList([AvgPool_layer() for _ in range(9)]) # 2^9 = 512
 		self.Linear_layer = Linear_layer()
 
-	def forward(self, added_last_hidden_states, current_token_pointed):
-		x = self.Condition_Feed_forward_block.forward(current_token_pointed).view(1, 512, 768)
-		x = x + added_last_hidden_state
+	def forward(self, last_hidden_states, current_token):
+		x = last_hidden_states + self.Context_Feed_forward_block.forward(last_hidden_states)  
+		x = x + self.Condition_Feed_forward_block.forward(last_hidden_states[current_token]) 
 		x = self.Convolution_layer.forward(x)
-		for AvgPool_layer in AvgPool_layers:
+		for AvgPool_layer in AvgPool_layers: # (1, 20, 768)?
 			x = AvgPool_layer.forward(x)
-		x = x.view(1, 20*768)
+		x = x.view(1, 20*768) 
 		x = self.Linear_layer.forward(x)
-		return x
+		return x # (1, 512)
 
 # Inference Module
 # class Model(nn.Module):

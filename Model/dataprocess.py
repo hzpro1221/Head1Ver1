@@ -40,4 +40,4 @@ class CustomDataset(Dataset):
 		return len(self.tokens_index)
 
 	def __getitem__(self, idx):
-		return {"index": self.tokens_index[idx], "label": self.labels[index]}
+		return {"index": self.tokens_index[idx], "label": self.labels[idx]}

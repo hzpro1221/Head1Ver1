@@ -2,10 +2,13 @@
 import sys
 sys.path.append('/content/Head1Ver1')
 
+import json
+
 import torch
 import torch.nn as nn
 from torch.optim import AdamW
 from torch.utils.data import Dataset, DataLoader
+from transformers import AutoTokenizer, AutoModel
 
 from dataprocess import Porcess_Data, CustomDataset
 from Model import Language_model, ModelBody
@@ -18,14 +21,12 @@ if __name__ == '__main__':
 	device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 	# Hyperparameter
-	max_sequence_len = 512
-	sample_len = len(sample) + 2 # [CLS], [SEP]
-	batch_size = 64
+	batch_size = 8
 	lr = 5e-5
 	num_eps = 5
 
 	# Language Model	
-	tokenizer =  AutoTokenizer.from_pretrained("bert-base-uncased").to(device) # BERT
+	tokenizer =  AutoTokenizer.from_pretrained("bert-base-uncased") # BERT
 	Language_model = Language_model().to(device)
 
 	# Head 
@@ -37,6 +38,9 @@ if __name__ == '__main__':
 
 	for epoch in range(num_eps):
 		for i, sample in enumerate(processed_data):
+			max_sequence_len = 512
+			sample_len = len(sample["tokens"]) + 2 # [CLS], [SEP]
+
 			input_ids = [101] + sample["tokens"] + [102] + [0 for _ in range(max_sequence_len - sample_len)]
 			input_ids = torch.tensor(input_ids).unsqueeze(0).to(device)
 
@@ -46,7 +50,7 @@ if __name__ == '__main__':
 			attention_mask = [1 for _ in range(sample_len)] + [0 for _ in range(max_sequence_len - sample_len)]
 			attention_mask = torch.tensor(attention_mask).unsqueeze(0).to(device)
 
-			inputs = {"input_ids": input_ids, "token_types_ids": token_types_ids, "attention_mask": attention_mask}
+			inputs = {"input_ids": input_ids, "token_type_ids": token_types_ids, "attention_mask": attention_mask}
 			last_hidden_states = Language_model.forward(inputs)
 
 			postive_token = []
@@ -73,4 +77,7 @@ if __name__ == '__main__':
 			dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
 			for i, batch in enumerate(dataloader):
+				
+				for index in batch["index"]:
+
 				optim.zero_grad()
