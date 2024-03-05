@@ -5,10 +5,10 @@ from transformers import AutoTokenizer, AutoModel
 class Linear_layer(nn.Module):
 	def __init__(self):
 		super().__init__()
-		self.linear = nn.Linear(20*768, 512)
+		self.linear = nn.Linear(20*764, 512)
 
 	def forward(self, vectors):
-		x = vectors.view(1, 20*768)
+		x = vectors.view(-1, 20*764)
 		x = self.linear(x)
 		return x
 
@@ -54,7 +54,7 @@ class Condition_Feed_forward_block(nn.Module):
 	def forward(self, vectors):
 		x = self.activation(self.layer1(vectors))
 		x = self.layer2(x)
-		x = x.view(1, 512, 768)
+		x = x.view(-1, 512, 768)
 		return x
 
 class Context_Feed_forward_block(nn.Module):
@@ -77,16 +77,15 @@ class ModelBody(nn.Module):
 		self.Context_Feed_forward_block = Context_Feed_forward_block()
 		self.Condition_Feed_forward_block = Condition_Feed_forward_block()
 		self.Convolution_layer = Convolution_layer()
-		self.AvgPool_layers = nn.ModuleList([AvgPool_layer() for _ in range(9)]) # 2^9 = 512
+		self.AvgPool_layers = nn.ModuleList([AvgPool_layer() for _ in range(8)]) 
 		self.Linear_layer = Linear_layer()
 
 	def forward(self, last_hidden_states, current_token):
 		x = last_hidden_states + self.Context_Feed_forward_block.forward(last_hidden_states)  
-		x = x + self.Condition_Feed_forward_block.forward(last_hidden_states[current_token]) 
-		x = self.Convolution_layer.forward(x)
-		for AvgPool_layer in AvgPool_layers: # (1, 20, 768)?
+		x = x + self.Condition_Feed_forward_block.forward(current_token) 
+		x = self.Convolution_layer.forward(x.unsqueeze(1))
+		for AvgPool_layer in self.AvgPool_layers: 
 			x = AvgPool_layer.forward(x)
-		x = x.view(1, 20*768) 
 		x = self.Linear_layer.forward(x)
 		return x # (1, 512)
 

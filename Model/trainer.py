@@ -76,18 +76,23 @@ if __name__ == '__main__':
 			dataset = CustomDataset(tokens_index=tokens_index, labels=labels)
 			dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, collate_fn=CustomCollateFunction)
 
-			for i, batch in enumerate(dataloader):
+			for j, batch in enumerate(dataloader):
 				optim.zero_grad()
 
 				tokens_list = []
 				for index in batch["list_index"]:
 					tokens_list.append(last_hidden_states[0][index])
 
-				tokens_stack = torch.stack(token_list) # Shape: (batch_size, 768)
+				tokens_stack = torch.stack(tokens_list) # Shape: (batch_size, 768)
 				labels_stack = batch["labels_stack"] # Shape: (batch_size, 512)
 
-				print(f"tokens_stack shape: {tokens_stack.shape}")
-				print(f"labels_stack shape: {labels_stack.shape}")
-
 				logits = model.forward(last_hidden_states, tokens_stack)
-				print("logits shape: {logits.shape}")
+				# print("logits shape: {logits.shape}")
+
+				loss_value = loss(logits, labels_stack)
+
+				loss_value.backward()
+
+				print(f"Epoch: {epoch}, Document: {i}, Batch: {j}")
+				
+				optim.step()   
