@@ -33,15 +33,13 @@ class Convolution_layer(nn.Module):
 class Language_model(nn.Module):
 	def __init__(self):
 		super().__init__()
-		self.tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
 		self.model = AutoModel.from_pretrained("bert-base-uncased")
 
 		# Freeze parameter
 		for param in self.model.parameters():
 			param.requires_grad = False
 
-	def forward(self, text):
-		inputs = self.tokenizer(text, return_tensors='pt', padding='longest')
+	def forward(self, inputs):
 		outputs = self.model(**inputs)
 		last_hidden_states = outpus.last_hidden_state
 		return last_hidden_states
@@ -89,16 +87,17 @@ class ModelBody(nn.Module):
 		x = self.Linear_layer.forward(x)
 		return x
 
-class Model(nn.Module):
-	def __init__(self):
-		super().__init__()
-		self.ModelBody = ModelBody()
-		self.Language_model = Language_model()
-		self.Context_Feed_forward_block = Context_Feed_forward_block()
+# Inference Module
+# class Model(nn.Module):
+# 	def __init__(self):
+# 		super().__init__()
+# 		self.ModelBody = ModelBody()
+# 		self.Language_model = Language_model()
+# 		self.Context_Feed_forward_block = Context_Feed_forward_block()
 
-	def forward(self, text):
-		last_hidden_states = self.Language_model.forward(text)
-		Context_vectors = self.Context_Feed_forward_block.forward(last_hidden_states)
-		x = last_hidden_states + Context_vectors 
-		for token in last_hidden_states:
-			predicted = self.ModelBody.forward(x, token)
+# 	def forward(self, text):
+# 		last_hidden_states = self.Language_model.forward(text)
+# 		Context_vectors = self.Context_Feed_forward_block.forward(last_hidden_states)
+# 		x = last_hidden_states + Context_vectors 
+# 		for token in last_hidden_states:
+# 			predicted = self.ModelBody.forward(x, token)
