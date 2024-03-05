@@ -66,7 +66,7 @@ if __name__ == '__main__':
 			negative_token_label = []
 			neg_label = [0 for _ in range(512)]
 			for index in range(sample_len - 1):
-				if (index + 1) not in postive_token: # + CLS
+				if (index + 1) not in postive_token: # + [CLS]
 					negative_token.append(index + 1)
 					negative_token_label.append(neg_label)
 
@@ -77,7 +77,14 @@ if __name__ == '__main__':
 			dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
 			for i, batch in enumerate(dataloader):
-				
-				for index in batch["index"]:
 
+				token_list = []
+				for index in batch["index"]:
+					token_list.append(last_hidden_states[index])
+
+				token_stack = torch.stack(token_list) # Shape: (batch_size, 768)
+				print(f"token_stack: {token_stack.shape}")
+
+				label_stack = torch.stack(batch["label"])
+				print(f"token_stack: {label_stack.shape}")
 				optim.zero_grad()
