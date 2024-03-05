@@ -1,7 +1,9 @@
+import torch
+
 from transformers import AutoTokenizer
 from torch.utils.data import Dataset, DataLoader
 
-def Porcess_Data(Data, tokenizer):
+def Process_Data(Data, tokenizer):
 	Porcessed_Data = []
 	for sample in Data:
 		list_token = []
@@ -41,3 +43,14 @@ class CustomDataset(Dataset):
 
 	def __getitem__(self, idx):
 		return {"index": self.tokens_index[idx], "label": self.labels[idx]}
+
+def CustomCollateFunction(batch):
+	tokens_list = []
+	labels_list = []
+	for sample in batch:
+		tokens_list.append(sample["index"])
+		labels_list.append(sample["label"])
+
+	tokens_stack = torch.stack(tokens_list)
+	labels_stack = torch.stack(labels_list)
+	return {"tokens_stack": tokens_stack, "labels_stack": labels_stack}

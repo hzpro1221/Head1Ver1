@@ -10,7 +10,7 @@ from torch.optim import AdamW
 from torch.utils.data import Dataset, DataLoader
 from transformers import AutoTokenizer, AutoModel
 
-from dataprocess import Porcess_Data, CustomDataset
+from dataprocess import Process_Data, CustomDataset, CustomCollateFunction
 from Model import Language_model, ModelBody
 
 if __name__ == '__main__':
@@ -73,18 +73,10 @@ if __name__ == '__main__':
 			tokens_index = postive_token + negative_token
 			labels = positive_token_label + negative_token_label
 
+			print(f"labels len: {len(labels[0])}")
+
 			dataset = CustomDataset(tokens_index=tokens_index, labels=labels)
-			dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+			dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, collate_fn=CustomCollateFunction())
 
 			for i, batch in enumerate(dataloader):
-
-				token_list = []
-				for index in batch["index"]:
-					token_list.append(last_hidden_states[index])
-
-				token_stack = torch.stack(token_list) # Shape: (batch_size, 768)
-				print(f"token_stack: {token_stack.shape}")
-
-				label_stack = torch.stack(batch["label"])
-				print(f"token_stack: {label_stack.shape}")
 				optim.zero_grad()
