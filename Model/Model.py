@@ -87,7 +87,14 @@ class ModelBody(nn.Module):
 		for AvgPool_layer in self.AvgPool_layers: 
 			x = AvgPool_layer.forward(x)
 		x = self.Linear_layer.forward(x)
-		return x # (1, 512)
+		return x # (batch_size, 512)
+
+	def save_checkpoint(self, director="/content/head1.pt"):
+		torch.save(self.state_dict(), director)
+
+	def load_checkpoint(self, director="/content/head1.pt"):
+		self.load_state_dict(torch.load(self.checkpoint_file))
+
 
 # Inference Module
 # class Model(nn.Module):

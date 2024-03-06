@@ -9,9 +9,9 @@ def Process_Data(Data, tokenizer):
 		list_token = []
 		list_index = [] 
 		for token in sample["tokens"]:
-			id = tokenizer(token, add_special_tokens=False)["input_ids"]
-			list_token.append(id)
-			list_index += id
+			ids = tokenizer(token, add_special_tokens=False)["input_ids"]
+			list_token.append(ids)
+			list_index += idss
 		list_enities = [] 
 		for entity in sample["entities"]:
 			start = 0

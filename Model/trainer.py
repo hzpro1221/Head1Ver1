@@ -35,7 +35,6 @@ if __name__ == '__main__':
 	optim = AdamW(model.parameters(), lr=lr)
 
 	processed_data = Process_Data(train_data, tokenizer)
-
 	for epoch in range(num_eps):
 		for i, sample in enumerate(processed_data):
 			max_sequence_len = 512
@@ -84,7 +83,7 @@ if __name__ == '__main__':
 					tokens_list.append(last_hidden_states[0][index])
 
 				tokens_stack = torch.stack(tokens_list) # Shape: (batch_size, 768)
-				labels_stack = batch["labels_stack"] # Shape: (batch_size, 512)
+				labels_stack = batch["labels_stack"].to(device) # Shape: (batch_size, 512)
 
 				logits = model.forward(last_hidden_states, tokens_stack)
 				# print("logits shape: {logits.shape}")
@@ -96,3 +95,5 @@ if __name__ == '__main__':
 				print(f"Epoch: {epoch}, Document: {i}, Batch: {j}, loss: {loss_value}")
 
 				optim.step()   
+
+	model.save_checkpoint()
