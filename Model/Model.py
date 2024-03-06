@@ -93,7 +93,7 @@ class ModelBody(nn.Module):
 		torch.save(self.state_dict(), director)
 
 	def load_checkpoint(self, director="/content/head1.pt"):
-		self.load_state_dict(torch.load(self.checkpoint_file))
+		self.load_state_dict(torch.load(director))
 
 
 # Inference Module

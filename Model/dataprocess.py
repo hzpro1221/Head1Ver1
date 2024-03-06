@@ -11,7 +11,7 @@ def Process_Data(Data, tokenizer):
 		for token in sample["tokens"]:
 			ids = tokenizer(token, add_special_tokens=False)["input_ids"]
 			list_token.append(ids)
-			list_index += idss
+			list_index += ids
 		list_enities = [] 
 		for entity in sample["entities"]:
 			start = 0
