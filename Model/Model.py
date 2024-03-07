@@ -88,8 +88,6 @@ class ModelBody(nn.Module):
 		for AvgPool_layer in self.AvgPool_layers: 
 			x = AvgPool_layer.forward(x)
 		x = self.Linear_layer.forward(x)
-		print(f"Output: {x}")
-		print(f"Output: {x}")
 		#--------------------------------------------------------------------------------
 		# Thêm một lớp Softmax chuyển thành distribution
 		x = self.Sigmoid_layer(x)

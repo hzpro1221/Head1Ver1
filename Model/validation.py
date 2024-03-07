@@ -2,8 +2,11 @@ import sys
 sys.path.append('/content/Head1Ver1')
 
 import json
+from transformers import AutoTokenizer, AutoModel
 
 from inference import predict
+from dataprocess import Process_Data
+
 
 if __name__ == '__main__':
 	# Open dataset folder
@@ -16,16 +19,19 @@ if __name__ == '__main__':
 	total = 0
 	score = 0
 
-	for sample in processed_data:
+	for i, sample in enumerate(processed_data):
+		print(f"document {i}")		
 		list_entities = []
 		for entity in sample["entities"]:
-			list_entities.append(f"Start: {start}, End: {end}")
+			list_entities.append(f'Start: {entity["start"]}, End: {entity["end"]}')
 		total += len(sample["entities"])
 
-		list_prediction = predict(text=None, list_token_processed=sample["tokens"])
+		prediction_text, prediction_start_end = predict(text="", list_token_processed=sample["tokens"])
 
 		for entity in list_entities:
-			if  (entity in list_prediction):
+			if  (entity in prediction_start_end):
 				score += 1
+		if (i > 50):
+			break
 
 	print(f"Validation result: {(score*100)/total}%")

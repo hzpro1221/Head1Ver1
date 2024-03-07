@@ -27,7 +27,7 @@ if __name__ == '__main__':
 
 	# Language Model	
 	tokenizer =  AutoTokenizer.from_pretrained("bert-base-uncased") # BERT
-	Language_model = Language_model().to(device)
+	language_model = Language_model().to(device)
 
 	# Head 
 	model = ModelBody().to(device)
@@ -58,7 +58,7 @@ if __name__ == '__main__':
 			attention_mask = torch.tensor(attention_mask).unsqueeze(0).to(device)
 
 			inputs = {"input_ids": input_ids, "token_type_ids": token_types_ids, "attention_mask": attention_mask}
-			last_hidden_states = Language_model.forward(inputs)
+			last_hidden_states = language_model.forward(inputs)
 			#--------------------------------------------------------------------------------
 
 			#--------------------------------------------------------------------------------

@@ -4,16 +4,16 @@ from transformers import AutoTokenizer, AutoModel
 from Model import Language_model, ModelBody
 
 
-def predict(text=None, list_token_processed=None):
+def predict(text="", list_token_processed=[]):
 	device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 	model = ModelBody().to(device)
 	model.load_checkpoint()
 
 	tokenizer =  AutoTokenizer.from_pretrained("bert-base-uncased") 
-	Language_model = Language_model().to(device)
+	language_model = Language_model().to(device)
 
-	if (list_token_processed=None):
+	if (len(list_token_processed)==0):
 		list_token = tokenizer(text, add_special_tokens=False)["input_ids"] + [100] # +[UNK]
 	else:
 		list_token = list_token_processed + [100]
@@ -21,7 +21,7 @@ def predict(text=None, list_token_processed=None):
 	max_sequence_len = 512
 	sample_len  = len(list_token) + 2 # [CLS], [SEP]
 
-	inputs_ids = [101] + sample["tokens"] + [102] + [0 for _ in range(max_sequence_len - sample_len)]
+	input_ids = [101] + list_token + [102] + [0 for _ in range(max_sequence_len - sample_len)]
 	input_ids = torch.tensor(input_ids).unsqueeze(0).to(device)
 
 	token_types_ids = [0 for _ in range(max_sequence_len)]
@@ -31,7 +31,7 @@ def predict(text=None, list_token_processed=None):
 	attention_mask = torch.tensor(attention_mask).unsqueeze(0).to(device)
 
 	inputs = {"input_ids": input_ids, "token_type_ids": token_types_ids, "attention_mask": attention_mask}
-	last_hidden_states = Language_model.forward(inputs)
+	last_hidden_states = language_model.forward(inputs)
 
 	prediction_text = []
 	prediction_start_end = []
@@ -42,13 +42,14 @@ def predict(text=None, list_token_processed=None):
 
 		prediction = model.forward(last_hidden_states, current_token)
 		end_index = torch.argmax(prediction, dim=1)
-		if (list_token[end_index] != 100):
-			if (i > end_index):
-				prediction_text.append([list_token[j] for j in range(end_index, i+1)])
-				prediction_start_end.append(f"Start: {j}, End: {i + 1}")
-			else:
-				prediction_text.append([list_token[j] for j in range(i, end_index+1)])
-				prediction_start_end.append(f"Start: {i}, End: {j + 1}")
+		if (end_index < len(list_token)):
+			if (list_token[end_index] != 100):
+				if (i > end_index):
+					prediction_text.append([list_token[j] for j in range(end_index.item(), i+1)])
+					prediction_start_end.append(f"Start: {end_index.item()}, End: {i + 1}")
+				else:
+					prediction_text.append([list_token[j] for j in range(i, end_index.item()+1)])
+					prediction_start_end.append(f"Start: {i}, End: {end_index.item() + 1}")
 	return prediction_text, prediction_start_end
 
 
