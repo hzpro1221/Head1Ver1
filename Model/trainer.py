@@ -35,7 +35,7 @@ if __name__ == '__main__':
 	#--------------------------------------------------------------------------------
 	# Với cách tiếp cận argmax, loss này không còn phù hợp
 	# Dùng cross entropy
-	loss = nn.CrossEntropyLoss()
+	loss = nn.BCELoss()
 	#--------------------------------------------------------------------------------
 
 	optim = AdamW(model.parameters(), lr=lr)

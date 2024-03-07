@@ -79,7 +79,7 @@ class ModelBody(nn.Module):
 		self.Convolution_layer = Convolution_layer()
 		self.AvgPool_layers = nn.ModuleList([AvgPool_layer() for _ in range(8)]) 
 		self.Linear_layer = Linear_layer()
-		self.Softmax_layer = nn.Softmax(dim=1)
+		self.Sigmoid_layer = nn.Sigmoid()
 
 	def forward(self, last_hidden_states, current_token):
 		x = last_hidden_states + self.Context_Feed_forward_block.forward(last_hidden_states)  
@@ -88,10 +88,11 @@ class ModelBody(nn.Module):
 		for AvgPool_layer in self.AvgPool_layers: 
 			x = AvgPool_layer.forward(x)
 		x = self.Linear_layer.forward(x)
-
+		print(f"Output: {x}")
+		print(f"Output: {x}")
 		#--------------------------------------------------------------------------------
 		# Thêm một lớp Softmax chuyển thành distribution
-		x = self.Softmax_layer(x)
+		x = self.Sigmoid_layer(x)
 		#--------------------------------------------------------------------------------
 		return x # (batch_size, 512)
 
