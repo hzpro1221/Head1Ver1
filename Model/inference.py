@@ -41,7 +41,7 @@ def predict(text="", list_token_processed=[]):
 		current_token = last_hidden_states[0][i + 1].unsqueeze(0) # (1, 768)
 
 		prediction = model.forward(last_hidden_states, current_token)
-		end_index = torch.argmin(prediction, dim=1).item()
+		end_index = torch.argmax(prediction, dim=1).item()
 		if (end_index < len(list_token)):
 			if (list_token[end_index] != 100):
 				if (i > end_index):

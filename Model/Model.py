@@ -47,9 +47,9 @@ class Language_model(nn.Module):
 class Condition_Feed_forward_block(nn.Module):
 	def __init__(self):
 		super().__init__()
-		self.layer1 = nn.Linear(768, 20)
+		self.layer1 = nn.Linear(768, 50)
 		self.activation = nn.ReLU()
-		self.layer2 = nn.Linear(20, 512*768)
+		self.layer2 = nn.Linear(50, 512*768)
 
 	def forward(self, vectors):
 		x = self.activation(self.layer1(vectors))
@@ -60,9 +60,9 @@ class Condition_Feed_forward_block(nn.Module):
 class Context_Feed_forward_block(nn.Module):
 	def __init__(self):
 		super().__init__()
-		self.layer1 = nn.Linear(512*768, 20)
+		self.layer1 = nn.Linear(512*768, 50)
 		self.activation = nn.ReLU()
-		self.layer2 = nn.Linear(20, 512*768)
+		self.layer2 = nn.Linear(50, 512*768)
 
 	def forward(self, last_hidden_states):
 		x = last_hidden_states.view(512*768)
