@@ -29,9 +29,7 @@ if __name__ == '__main__':
 		prediction_text, prediction_start_end = predict(text="", list_token_processed=sample["tokens"])
 
 		for entity in list_entities:
-			if  (entity in prediction_start_end):
+			if (entity in prediction_start_end):
 				score += 1
-		if (i > 50):
-			break
 
 	print(f"Validation result: {(score*100)/total}%")

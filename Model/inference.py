@@ -38,18 +38,18 @@ def predict(text="", list_token_processed=[]):
 	# Iterate through every token
 	for i in range(sample_len - 2):
 
-		current_token = last_hidden_states[0][i + 1].unsqueeze(0)
+		current_token = last_hidden_states[0][i + 1].unsqueeze(0) # (1, 768)
 
 		prediction = model.forward(last_hidden_states, current_token)
-		end_index = torch.argmax(prediction, dim=1)
+		end_index = torch.argmax(prediction, dim=1).item()
 		if (end_index < len(list_token)):
 			if (list_token[end_index] != 100):
 				if (i > end_index):
-					prediction_text.append([list_token[j] for j in range(end_index.item(), i+1)])
-					prediction_start_end.append(f"Start: {end_index.item()}, End: {i + 1}")
+					prediction_text.append([tokenizer.convert_ids_to_tokens(list_token[j]) for j in range(end_index, i+1)])
+					prediction_start_end.append(f"Start: {end_index}, End: {i+1}")
 				else:
-					prediction_text.append([list_token[j] for j in range(i, end_index.item()+1)])
-					prediction_start_end.append(f"Start: {i}, End: {end_index.item() + 1}")
+					prediction_text.append([tokenizer.convert_ids_to_tokens(list_token[j]) for j in range(i, end_index+1)])
+					prediction_start_end.append(f"Start: {i}, End: {end_index+1}")
 	return prediction_text, prediction_start_end
 
 

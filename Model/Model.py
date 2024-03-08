@@ -88,10 +88,6 @@ class ModelBody(nn.Module):
 		for AvgPool_layer in self.AvgPool_layers: 
 			x = AvgPool_layer.forward(x)
 		x = self.Linear_layer.forward(x)
-		#--------------------------------------------------------------------------------
-		# Thêm một lớp Softmax chuyển thành distribution
-		x = self.Sigmoid_layer(x)
-		#--------------------------------------------------------------------------------
 		return x # (batch_size, 512)
 
 	def save_checkpoint(self, director="/content/head1.pt"):
@@ -99,19 +95,3 @@ class ModelBody(nn.Module):
 
 	def load_checkpoint(self, director="/content/head1.pt"):
 		self.load_state_dict(torch.load(director))
-
-
-# Inference Module
-# class Model(nn.Module):
-# 	def __init__(self):
-# 		super().__init__()
-# 		self.ModelBody = ModelBody()
-# 		self.Language_model = Language_model()
-# 		self.Context_Feed_forward_block = Context_Feed_forward_block()
-
-# 	def forward(self, text):
-# 		last_hidden_states = self.Language_model.forward(text)
-# 		Context_vectors = self.Context_Feed_forward_block.forward(last_hidden_states)
-# 		x = last_hidden_states + Context_vectors 
-# 		for token in last_hidden_states:
-# 			predicted = self.ModelBody.forward(x, token)

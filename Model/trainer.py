@@ -22,7 +22,7 @@ if __name__ == '__main__':
 
 	# Hyperparameter
 	batch_size = 8
-	lr = 5e-5
+	lr = 5e-4
 	num_eps = 5
 
 	# Language Model	
@@ -32,11 +32,8 @@ if __name__ == '__main__':
 	# Head 
 	model = ModelBody().to(device)
 
-	#--------------------------------------------------------------------------------
-	# Với cách tiếp cận argmax, loss này không còn phù hợp
-	# Dùng cross entropy
-	loss = nn.BCELoss()
-	#--------------------------------------------------------------------------------
+	# loss
+	loss = nn.HingeEmbeddingLoss()
 
 	optim = AdamW(model.parameters(), lr=lr)
 
@@ -46,8 +43,6 @@ if __name__ == '__main__':
 			max_sequence_len = 512
 			sample_len = len(sample["tokens"]) + 3 # [CLS], [UNK], [SEP]
 
-			#--------------------------------------------------------------------------------
-			# Thêm một token [UNK] vào, biểu thị rằng token đấy không trỏ đến bất kì token nào
 			input_ids = [101] + sample["tokens"] + [100] + [102] + [0 for _ in range(max_sequence_len - sample_len)]
 			input_ids = torch.tensor(input_ids).unsqueeze(0).to(device)
 
@@ -59,29 +54,24 @@ if __name__ == '__main__':
 
 			inputs = {"input_ids": input_ids, "token_type_ids": token_types_ids, "attention_mask": attention_mask}
 			last_hidden_states = language_model.forward(inputs)
-			#--------------------------------------------------------------------------------
 
-			#--------------------------------------------------------------------------------
-			# Sửa label
 			postive_token = []
 			positive_token_label = []
 			for entity in sample["entities"]:
 				start = entity["start"] + 1 # + [CLS]
 				end = entity["end"] + 1 # + [CLS]
-				# Sửa lại nhãn cho phù hợp với kiểu tìm argmax
-				label_start = [0 for _ in range(end-1)] + [1] + [0 for _ in range(end, 512)] # Không phải 1 dải 1 nữa
-				label_end = [0 for _ in range(start)] + [1] + [0 for _ in range(start+1, 512)] # Không phải 1 dải 1 nữa
+				label_start = [-1 for _ in range(end-1)] + [1] + [-1 for _ in range(end, 512)] # Không phải 1 dải 1 nữa
+				label_end = [-1 for _ in range(start)] + [1] + [-1 for _ in range(start+1, 512)] # Không phải 1 dải 1 nữa
 				postive_token = postive_token + [start, end]
 				positive_token_label = positive_token_label + [label_start, label_end]
 
 			negative_token = []
 			negative_token_label = [] 
-			neg_label = [0 for _ in range(sample_len-2)] + [1] + [0 for _ in range(sample_len-1, 512)] # Trỏ đế [UNK]
-			for index in range(sample_len - 1):
+			neg_label = [-1 for _ in range(sample_len-2)] + [1] + [-1 for _ in range(sample_len-1, 512)] # Trỏ đế [UNK]
+			for index in range(sample_len - 2):
 				if (index + 1) not in postive_token: # + [CLS]
 					negative_token.append(index + 1)
 					negative_token_label.append(neg_label)
-			#--------------------------------------------------------------------------------
 
 			tokens_index = postive_token + negative_token
 			labels = positive_token_label + negative_token_label
