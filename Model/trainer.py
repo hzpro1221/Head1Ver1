@@ -22,7 +22,7 @@ if __name__ == '__main__':
 
 	# Hyperparameter
 	batch_size = 8
-	lr = 5e-4
+	lr = 5e-5
 	num_eps = 5
 
 	# Language Model	
@@ -33,7 +33,7 @@ if __name__ == '__main__':
 	model = ModelBody().to(device)
 
 	# loss
-	loss = nn.HingeEmbeddingLoss()
+	loss = nn.CrossEntropyLoss()
 
 	optim = AdamW(model.parameters(), lr=lr)
 
@@ -60,14 +60,14 @@ if __name__ == '__main__':
 			for entity in sample["entities"]:
 				start = entity["start"] + 1 # + [CLS]
 				end = entity["end"] + 1 # + [CLS]
-				label_start = [-1 for _ in range(end-1)] + [1] + [-1 for _ in range(end, 512)] # Không phải 1 dải 1 nữa
-				label_end = [-1 for _ in range(start)] + [1] + [-1 for _ in range(start+1, 512)] # Không phải 1 dải 1 nữa
+				label_start = [0 for _ in range(end-1)] + [1] + [0 for _ in range(end, 512)] # Không phải 1 dải 1 nữa
+				label_end = [0 for _ in range(start)] + [1] + [0 for _ in range(start+1, 512)] # Không phải 1 dải 1 nữa
 				postive_token = postive_token + [start, end]
 				positive_token_label = positive_token_label + [label_start, label_end]
 
 			negative_token = []
 			negative_token_label = [] 
-			neg_label = [-1 for _ in range(sample_len-2)] + [1] + [-1 for _ in range(sample_len-1, 512)] # Trỏ đế [UNK]
+			neg_label = [0 for _ in range(sample_len-2)] + [1] + [0 for _ in range(sample_len-1, 512)] # Trỏ đế [UNK]
 			for index in range(sample_len - 2):
 				if (index + 1) not in postive_token: # + [CLS]
 					negative_token.append(index + 1)
