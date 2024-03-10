@@ -35,14 +35,20 @@ class Language_model(nn.Module):
 		super().__init__()
 		self.model = AutoModel.from_pretrained("bert-base-uncased")
 
-		# Freeze parameter
-		for param in self.model.parameters():
-			param.requires_grad = False
+		# # Freeze parameter
+		# for param in self.model.parameters():
+		# 	param.requires_grad = False
 
 	def forward(self, inputs):
 		outputs = self.model(**inputs)
 		last_hidden_states = outputs.last_hidden_state
 		return last_hidden_states
+
+	def save_checkpoint(self, director="/content/language_model.pt"):
+		torch.save(self.state_dict(), director)
+
+	def load_checkpoint(self, director="/content/language_model.pt"):
+		self.load_state_dict(torch.load(director))
 
 class Condition_Feed_forward_block(nn.Module):
 	def __init__(self):

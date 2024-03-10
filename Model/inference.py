@@ -12,6 +12,7 @@ def predict(text="", list_token_processed=[]):
 
 	tokenizer =  AutoTokenizer.from_pretrained("bert-base-uncased") 
 	language_model = Language_model().to(device)
+	language_model.load_checkpoint()
 
 	if (len(list_token_processed)==0):
 		list_token = tokenizer(text, add_special_tokens=False)["input_ids"] + [100] # +[UNK]

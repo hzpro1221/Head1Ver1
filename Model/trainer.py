@@ -101,3 +101,4 @@ if __name__ == '__main__':
 				optim.step()   
 
 	model.save_checkpoint()
+	language_model.save_checkpoint()
