@@ -1,3 +1,7 @@
+# Set system path for Google Colab
+import sys
+sys.path.append('/content/Head1Ver1')
+
 import json
 
 import torch
@@ -7,10 +11,10 @@ from torch.utils.data import Dataset, DataLoader
 from transformers import AutoTokenizer, AutoModel
 
 from dataprocess import Process_Data, CustomDataset, CustomCollateFunction
-from Model import Language_model, ModelBody, Model
+from Model import Language_model, ModelBody
 
 if __name__ == '__main__':
-	print("start trainer.py")
+	print("start trainer_adapter.py")
 	# Open dataset folder
 	with open("/content/conll04_train.json") as f:
 		train_data = json.load(f)
@@ -22,16 +26,18 @@ if __name__ == '__main__':
 	lr = 5e-5
 	num_eps = 5
 
-	# Tokenizer
-	tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased") # BERT
+	# Language Model	
+	tokenizer =  AutoTokenizer.from_pretrained("bert-base-uncased") # BERT
+	language_model = Language_model().to(device)
 
-	# Model	
-	model = Model().to(device)
+	# Head 
+	model = ModelBody().to(device)
 
 	# loss
 	loss = nn.CrossEntropyLoss()
 
 	optim = AdamW(model.parameters(), lr=lr)
+
 	processed_data = Process_Data(train_data, tokenizer)
 	for epoch in range(num_eps):
 		for i, sample in enumerate(processed_data):
@@ -73,9 +79,10 @@ if __name__ == '__main__':
 			dataset = CustomDataset(tokens_index=tokens_index, labels=labels)
 			dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, collate_fn=CustomCollateFunction)
 
+			last_hidden_states = language_model.forward(inputs)
+
 			for j, batch in enumerate(dataloader):
 				optim.zero_grad()
-				last_hidden_states = model.language_model.forward(inputs).float()
 
 				tokens_list = []
 				for index in batch["list_index"]:
@@ -83,10 +90,10 @@ if __name__ == '__main__':
 					zeros[index] = 1
 				tokens_list = torch.tensor(tokens_list).float()
 				
-				tokens_stack = torch.matmul(tokens_list, last_hidden_states.view(512, 768)) # (batch_size, 768)
+				x = torch.matmul(tokens_list, last_hidden_states.view(512, 768)) # Shape: (batch_size, 768)
 				labels_stack = batch["labels_stack"].to(device) # Shape: (batch_size, 512)
 
-				logits = model.modelbody.forward(last_hidden_states, tokens_stack)
+				logits = model.forward(last_hidden_states, tokens_stack)
 				# print("logits shape: {logits.shape}")
 
 				loss_value = loss(logits.float(), labels_stack.float())
@@ -98,4 +105,3 @@ if __name__ == '__main__':
 				optim.step()   
 
 	model.save_checkpoint()
-

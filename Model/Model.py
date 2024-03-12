@@ -31,31 +31,26 @@ class Convolution_layer(nn.Module):
 		return x
 
 class Language_model(nn.Module):
-	def __init__(self):
+	def __init__(self, freeze=True):
 		super().__init__()
 		self.model = AutoModel.from_pretrained("bert-base-uncased")
 
-		# # Freeze parameter
-		# for param in self.model.parameters():
-		# 	param.requires_grad = False
+		# Freeze parameter
+		if (freeze==True):
+			for param in self.model.parameters():
+				param.requires_grad = False
 
 	def forward(self, inputs):
 		outputs = self.model(**inputs)
 		last_hidden_states = outputs.last_hidden_state
 		return last_hidden_states
 
-	def save_checkpoint(self, director="/content/language_model.pt"):
-		torch.save(self.state_dict(), director)
-
-	def load_checkpoint(self, director="/content/language_model.pt"):
-		self.load_state_dict(torch.load(director))
-
 class Condition_Feed_forward_block(nn.Module):
 	def __init__(self):
 		super().__init__()
-		self.layer1 = nn.Linear(768, 50)
+		self.layer1 = nn.Linear(768, 20)
 		self.activation = nn.ReLU()
-		self.layer2 = nn.Linear(50, 512*768)
+		self.layer2 = nn.Linear(20, 512*768)
 
 	def forward(self, vectors):
 		x = self.activation(self.layer1(vectors))
@@ -66,9 +61,9 @@ class Condition_Feed_forward_block(nn.Module):
 class Context_Feed_forward_block(nn.Module):
 	def __init__(self):
 		super().__init__()
-		self.layer1 = nn.Linear(512*768, 50)
+		self.layer1 = nn.Linear(512*768, 20)
 		self.activation = nn.ReLU()
-		self.layer2 = nn.Linear(50, 512*768)
+		self.layer2 = nn.Linear(20, 512*768)
 
 	def forward(self, last_hidden_states):
 		x = last_hidden_states.view(512*768)
@@ -85,19 +80,35 @@ class ModelBody(nn.Module):
 		self.Convolution_layer = Convolution_layer()
 		self.AvgPool_layers = nn.ModuleList([AvgPool_layer() for _ in range(8)]) 
 		self.Linear_layer = Linear_layer()
-		self.Sigmoid_layer = nn.Sigmoid()
 
 	def forward(self, last_hidden_states, current_token):
 		x = last_hidden_states + self.Context_Feed_forward_block.forward(last_hidden_states)  
+		print(last_hidden_states.shape())
+		print(self.Context_Feed_forward_block.forward(last_hidden_states).shape)
 		x = x + self.Condition_Feed_forward_block.forward(current_token) 
 		x = self.Convolution_layer.forward(x.unsqueeze(1))
 		for AvgPool_layer in self.AvgPool_layers: 
 			x = AvgPool_layer.forward(x)
 		x = self.Linear_layer.forward(x)
-		return x # (batch_size, 512)
+		return x 
 
 	def save_checkpoint(self, director="/content/head1.pt"):
 		torch.save(self.state_dict(), director)
 
 	def load_checkpoint(self, director="/content/head1.pt"):
 		self.load_state_dict(torch.load(director))
+
+
+class Model(nn.Module):
+	def __init__(self):
+		super().__init__()
+		self.modelbody = ModelBody()
+		self.modelbody.load_checkpoint()
+
+		self.language_model = Language_model(freeze=False)
+
+	def save_checkpoint(self, director="/content/model.pt"):
+		torch.save(self.state_dict(), director)
+
+	def load_checkpoint(self, director="/content/model.pt"):
+		self.load_state_dict(torch.load(director)) 
