@@ -28,7 +28,7 @@ if __name__ == '__main__':
 
 	# Language Model	
 	tokenizer =  AutoTokenizer.from_pretrained("bert-base-uncased") # BERT
-	language_model = Language_model().to(device)
+	language_model = Language_model(freeze=True).to(device)
 
 	# Head 
 	model = ModelBody().to(device)
@@ -88,9 +88,10 @@ if __name__ == '__main__':
 				for index in batch["list_index"]:
 					zeros = [0 for _ in range(512)]
 					zeros[index] = 1
-				tokens_list = torch.tensor(tokens_list).float()
+					tokens_list.append(zeros)
+				tokens_list = torch.tensor(tokens_list).float().to(device)
 				
-				x = torch.matmul(tokens_list, last_hidden_states.view(512, 768)) # Shape: (batch_size, 768)
+				tokens_stack = torch.matmul(tokens_list, last_hidden_states.view(512, 768)) # Shape: (batch_size, 768)
 				labels_stack = batch["labels_stack"].to(device) # Shape: (batch_size, 512)
 
 				logits = model.forward(last_hidden_states, tokens_stack)

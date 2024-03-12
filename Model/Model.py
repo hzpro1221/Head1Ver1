@@ -83,8 +83,6 @@ class ModelBody(nn.Module):
 
 	def forward(self, last_hidden_states, current_token):
 		x = last_hidden_states + self.Context_Feed_forward_block.forward(last_hidden_states)  
-		print(last_hidden_states.shape())
-		print(self.Context_Feed_forward_block.forward(last_hidden_states).shape)
 		x = x + self.Condition_Feed_forward_block.forward(current_token) 
 		x = self.Convolution_layer.forward(x.unsqueeze(1))
 		for AvgPool_layer in self.AvgPool_layers: 
@@ -92,10 +90,10 @@ class ModelBody(nn.Module):
 		x = self.Linear_layer.forward(x)
 		return x 
 
-	def save_checkpoint(self, director="/content/head1.pt"):
+	def save_checkpoint(self, director="/content/drive/MyDrive/Head1/head1.pt"):
 		torch.save(self.state_dict(), director)
 
-	def load_checkpoint(self, director="/content/head1.pt"):
+	def load_checkpoint(self, director="/content/drive/MyDrive/Head1/head1.pt"):
 		self.load_state_dict(torch.load(director))
 
 
@@ -107,8 +105,8 @@ class Model(nn.Module):
 
 		self.language_model = Language_model(freeze=False)
 
-	def save_checkpoint(self, director="/content/model.pt"):
+	def save_checkpoint(self, director="/content/drive/MyDrive/Head1/model.pt"):
 		torch.save(self.state_dict(), director)
 
-	def load_checkpoint(self, director="/content/model.pt"):
+	def load_checkpoint(self, director="/content/drive/MyDrive/Head1/model.pt"):
 		self.load_state_dict(torch.load(director)) 

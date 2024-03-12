@@ -81,7 +81,8 @@ if __name__ == '__main__':
 				for index in batch["list_index"]:
 					zeros = [0 for _ in range(512)]
 					zeros[index] = 1
-				tokens_list = torch.tensor(tokens_list).float()
+					tokens_list.append(zeros)
+				tokens_list = torch.tensor(tokens_list).float().to(device)
 				
 				tokens_stack = torch.matmul(tokens_list, last_hidden_states.view(512, 768)) # (batch_size, 768)
 				labels_stack = batch["labels_stack"].to(device) # Shape: (batch_size, 512)
