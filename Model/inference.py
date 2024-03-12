@@ -1,18 +1,16 @@
 import torch
 from transformers import AutoTokenizer, AutoModel
 
-from Model import Language_model, ModelBody
+from Model import Language_model, ModelBody, Model
 
 
 def predict(text="", list_token_processed=[]):
 	device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-	model = ModelBody().to(device)
+	model = Model().to(device)
 	model.load_checkpoint()
 
 	tokenizer =  AutoTokenizer.from_pretrained("bert-base-uncased") 
-	language_model = Language_model().to(device)
-	language_model.load_checkpoint()
 
 	if (len(list_token_processed)==0):
 		list_token = tokenizer(text, add_special_tokens=False)["input_ids"] + [100] # +[UNK]
@@ -32,7 +30,7 @@ def predict(text="", list_token_processed=[]):
 	attention_mask = torch.tensor(attention_mask).unsqueeze(0).to(device)
 
 	inputs = {"input_ids": input_ids, "token_type_ids": token_types_ids, "attention_mask": attention_mask}
-	last_hidden_states = language_model.forward(inputs)
+	last_hidden_states = model.language_model.forward(inputs)
 
 	prediction_text = []
 	prediction_start_end = []
@@ -41,7 +39,7 @@ def predict(text="", list_token_processed=[]):
 
 		current_token = last_hidden_states[0][i + 1].unsqueeze(0) # (1, 768)
 
-		prediction = model.forward(last_hidden_states, current_token)
+		prediction = model.modelbody.forward(last_hidden_states, current_token)
 		end_index = torch.argmax(prediction, dim=1).item()
 		if (end_index < len(list_token)):
 			if (list_token[end_index] != 100):
