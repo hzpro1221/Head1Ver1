@@ -101,8 +101,6 @@ class Model(nn.Module):
 	def __init__(self):
 		super().__init__()
 		self.modelbody = ModelBody()
-		self.modelbody.load_checkpoint()
-
 		self.language_model = Language_model(freeze=False)
 
 	def save_checkpoint(self, director="/content/drive/MyDrive/Head1/model.pt"):
